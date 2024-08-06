@@ -3,8 +3,8 @@ kind: ConfigMap
 metadata:
   name: configmap
 data:
-  DB_NAME: "coworking"
-  DB_USERNAME: "coworking"
+  DB_NAME: "mydatabase"
+  DB_USERNAME: "myuser"
   DB_HOST: "postgresql-service.default.svc.cluster.local"
   DB_PORT: "5432"
 ---
@@ -14,4 +14,4 @@ metadata:
   name: database-secret
 type: Opaque
 data:
-  DB_PASSWORD: Y293b3JraW5nIQ==
+  DB_PASSWORD: bXlwYXNzd29yZA==
