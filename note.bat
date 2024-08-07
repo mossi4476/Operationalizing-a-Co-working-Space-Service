@@ -28,6 +28,8 @@ python app.py
 
 curl 127.0.0.1:5153/api/reports/daily_usage
 curl 127.0.0.1:5153/api/reports/user_visits
+ac7d49b0317eb433d8f20242260b816f-421024802.us-east-1.elb.amazonaws.com/api/reports/daily_usage
+ac7d49b0317eb433d8f20242260b816f-421024802.us-east-1.elb.amazonaws.com/api/reports/user_visits
 
 docker build -t coworking .
 docker run --network="host" test-coworking-analytics
