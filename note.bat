@@ -1,11 +1,19 @@
-eksctl create cluster --name coworking-cluster --region us-east-1 --nodegroup-name coworking-nodes --node-type t3.small --nodes 1 --nodes-min 1 --nodes-max 2
+eksctl create cluster --name my-cluster --region us-east-1 --nodegroup-name my-nodes --node-type t3.small --nodes 1 --nodes-min 1 --nodes-max 2
+aws eks --region us-east-1 update-kubeconfig --name my-cluster
 
-aws eks --region us-east-1 update-kubeconfig --name coworking-cluster
+kubectl get storageclass
 
-psql -U coworking -d coworking
+psql -U myuser -d mydatabase
+
+kubectl apply -f pvc.yaml
+kubectl apply -f pv.yaml
+kubectl apply -f postgresql-deployment.yaml
+
+psql -U myuser -d mydatabase
+
 
 # Set up port-forwarding to `postgresql-service`
-kubectl port-forward service/postgresql-service 5433:5432 &
+kubectl port-forward service/postgresql-service 5432:5432 
 ps aux | grep 'kubectl port-forward' | grep -v grep | awk '{print $2}' | xargs -r kill
 
 PGPASSWORD="$DB_PASSWORD" psql --host 127.0.0.1 -U coworking -d coworking -p 5433
@@ -17,11 +25,11 @@ deactivate
 rm -rf venv
 
 
-export DB_USERNAME=coworking
-export DB_PASSWORD=${POSTGRES_PASSWORD}
-export DB_HOST=127.0.0.1
-export DB_PORT=5433
-export DB_NAME=coworking
+$env:DB_USERNAME="myuser"
+$env:DB_PASSWORD="mypassword"
+$env:DB_HOST="127.0.0.1"
+$env:DB_PORT="5432"
+$env:DB_NAME="mydatabase"
 python app.py
 
 curl 127.0.0.1:5153/api/reports/daily_usage
