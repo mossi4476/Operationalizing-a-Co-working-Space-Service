@@ -53,7 +53,7 @@ psql --host=127.0.0.1 -U myuser -d mydatabase -p 5432 -f "2_seed_users.sql"
 psql --host=127.0.0.1 -U myuser -d mydatabase -p 5432 -f "3_seed_tokens.sql"
 
 aws iam attach-role-policy `
-    --role-name "eksctl-coworking-cluster-nodegroup-NodeInstanceRole-HnAdr" `
+    --role-name "eksctl-my-cluster-nodegroup-my-nod-NodeInstanceRole-UY65rlcSUCvk" `
     --policy-arn "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
 
-aws eks create-addon --addon-name amazon-cloudwatch-observability --cluster-name coworking-cluster
+aws eks create-addon --addon-name amazon-cloudwatch-observability --cluster-name my-cluster
