@@ -3,11 +3,12 @@ aws eks --region us-east-1 update-kubeconfig --name my-cluster
 
 kubectl get storageclass
 
-psql -U myuser -d mydatabase
-
 kubectl apply -f pvc.yaml
 kubectl apply -f pv.yaml
 kubectl apply -f postgresql-deployment.yaml
+---
+kubectl apply -f coworking.yaml
+kubectl apply -f configmap.yaml
 
 psql -U myuser -d mydatabase
 
@@ -16,14 +17,7 @@ psql -U myuser -d mydatabase
 kubectl port-forward service/postgresql-service 5432:5432 
 ps aux | grep 'kubectl port-forward' | grep -v grep | awk '{print $2}' | xargs -r kill
 
-PGPASSWORD="$DB_PASSWORD" psql --host 127.0.0.1 -U coworking -d coworking -p 5433
-
-python3 -m venv venv  
-source venv/bin/activate
-pip3 install -r requirements.txt
-deactivate
-rm -rf venv
-
+pip install -r requirements.txt
 
 $env:DB_USERNAME="myuser"
 $env:DB_PASSWORD="mypassword"
@@ -39,33 +33,25 @@ docker build -t coworking .
 docker run --network="host" test-coworking-analytics
 
 
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 536577976564.dkr.ecr.us-east-1.amazonaws.com
-docker build -t   .
-docker tag coworking:latest 536577976564.dkr.ecr.us-east-1.amazonaws.com/coworking:latest
-docker push 536577976564.dkr.ecr.us-east-1.amazonaws.com/coworking:latest
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 627483498834.dkr.ecr.us-east-1.amazonaws.com
+docker build -t coworking .
+docker tag coworking:latest 627483498834.dkr.ecr.us-east-1.amazonaws.com/coworking:latest
+docker push 627483498834.dkr.ecr.us-east-1.amazonaws.com/coworking:latest
 
 curl aabe0102f83134eb0bbf035a56ed2a2f-1463734127.us-east-1.elb.amazonaws.com:5153/api/reports/daily_usage
 
-aws iam attach-role-policy \
---role-name eksctl-coworking-cluster-nodegroup-NodeInstanceRole-t4n9402e2NWl \
---policy-arn arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
-
-aws eks create-addon --addon-name amazon-cloudwatch-observability --cluster-name coworking-cluster
-
-curl aabe0102f83134eb0bbf035a56ed2a2f-1463734127.us-east-1.elb.amazonaws.com:5153/api/reports/daily_usage
-
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install postgresql-service bitnami/postgresql --set primary.persistence.enabled=false
 
 kubectl get secret --namespace default postgresql-service -o jsonpath="{.data.postgresql-password}" | base64 --decode
 
-psql --host 127.0.0.1 -U coworking -d coworking -p 5433
+kubectl port-forward --namespace default svc/postgresql-service 5432:5432 
 
-psql --host 127.0.0.1 -U postgres -d postgres -p 5432
-ehQmy6xZQh
+set PGPASSWORD=mypassword
+psql --host=127.0.0.1 -U myuser -d mydatabase -p 5432 -f "1_create_tables.sql"
+psql --host=127.0.0.1 -U myuser -d mydatabase -p 5432 -f "2_seed_users.sql"
+psql --host=127.0.0.1 -U myuser -d mydatabase -p 5432 -f "3_seed_tokens.sql"
 
-PGPASSWORD="$DB_PASSWORD" psql --host 127.0.0.1 -U coworking -d coworking -p 5433 -c "CREATE USER coworking WITH LOGIN;"
-PGPASSWORD="$DB_PASSWORD" psql --host 127.0.0.1 -U coworking -d coworking -p 5433 -c "ALTER ROLE coworking WITH PASSWORD 'coworking!';"
-PGPASSWORD="$DB_PASSWORD" psql --host 127.0.0.1 -U coworking -d coworking -p 5433 -c "ALTER ROLE coworking WITH SUPERUSER;"
+aws iam attach-role-policy `
+    --role-name "eksctl-coworking-cluster-nodegroup-NodeInstanceRole-HnAdr" `
+    --policy-arn "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
 
-kubectl port-forward --namespace default svc/postgresql-service 5432:5432 &
+aws eks create-addon --addon-name amazon-cloudwatch-observability --cluster-name coworking-cluster
